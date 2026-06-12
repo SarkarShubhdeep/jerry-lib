@@ -2,12 +2,7 @@
  * Pre-publish smoke: validates consumer API from repo root.
  * Run: deno task smoke
  */
-import {
-  buildActivitySummary,
-  formatActivityContext,
-  getPrompt,
-  initJerryLib,
-} from '../../mod.ts'
+import { buildActivitySummary, formatActivityContext, getPrompt, initJerryLib } from '../../mod.ts'
 
 initJerryLib()
 

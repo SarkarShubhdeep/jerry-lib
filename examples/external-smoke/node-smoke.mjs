@@ -4,7 +4,7 @@
  *   npm init -y && npx jsr add @sarkarshubhdeep/jerry-lib@0.1.0
  *   node node-smoke.mjs
  */
-import { initJerryLib, getPrompt } from '@sarkarshubhdeep/jerry-lib'
+import { getPrompt, initJerryLib } from '@sarkarshubhdeep/jerry-lib'
 
 initJerryLib()
 
