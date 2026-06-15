@@ -3,10 +3,11 @@ import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 import a3t, { type FsBackend } from 'a3t'
 
+/** Options for {@link initAssets} and {@link initJerryLib}. */
 export type AssetsInitOptions = {
-  /** User-local override directory (e.g. ~/.config/jerry/assets). */
+  /** User-local override directory (e.g. `~/.config/jerry/assets`). */
   overridePath?: string
-  /** Shipped defaults root; defaults to package assets/ next to src/. */
+  /** Shipped defaults root; defaults to package `assets/` next to `src/`. */
   shippedRoot?: string
 }
 
@@ -135,7 +136,11 @@ let initialized = false
 
 /**
  * Initialize a3t with a layered filesystem backend.
- * Resolution: local override → shipped defaults → inline fallback in getPrompt().
+ *
+ * Resolution order: local override → shipped defaults → inline fallback in {@link getPrompt}.
+ * Prefer {@link initJerryLib} for normal host setup.
+ *
+ * @param options Optional override and shipped asset roots.
  */
 export function initAssets(options?: AssetsInitOptions): void {
   const shippedRoot = options?.shippedRoot ?? resolveDefaultShippedRoot()
@@ -154,12 +159,20 @@ function ensureAssetsInitialized(): void {
   if (!initialized) initAssets()
 }
 
+/**
+ * Load a prompt asset by key with layered resolution.
+ *
+ * @param key Asset path (e.g. `prompts/report.txt`).
+ * @param defaultValue Inline fallback when no override or shipped file exists.
+ * @returns Resolved prompt text.
+ */
 export async function getPrompt(key: string, defaultValue: string): Promise<string> {
   ensureAssetsInitialized()
   const value = await a3t.get(key, defaultValue)
   return typeof value === 'string' ? value : defaultValue
 }
 
+/** Clear the in-memory a3t asset cache (e.g. after editing override files in a long-lived process). */
 export function clearAssetCache(): void {
   a3t.clearCache()
 }

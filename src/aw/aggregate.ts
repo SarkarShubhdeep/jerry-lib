@@ -60,6 +60,14 @@ function activityKey(watcher: WatcherKind, app: string, title: string): string {
   return `${watcher}\0${app}\0${title}`
 }
 
+/**
+ * Aggregate top app/title pairs by tracked duration for one watcher.
+ *
+ * @param events Filtered events for a single bucket.
+ * @param watcher Watcher kind (window, web, vscode, afk).
+ * @param limit Maximum activities to return (default 20).
+ * @returns Activities sorted by duration descending.
+ */
 export function aggregateTopActivities(
   events: readonly RawEvent[],
   watcher: WatcherKind,
@@ -91,6 +99,12 @@ export function aggregateTopActivities(
     .slice(0, limit)
 }
 
+/**
+ * Merge per-watcher top activities into a single ranked list.
+ *
+ * @param perWatcher Activities from multiple {@link aggregateTopActivities} calls.
+ * @param limit Maximum activities to return (default 20).
+ */
 export function mergeTopActivities(
   perWatcher: TopActivity[],
   limit: number = TOP_ACTIVITIES_LIMIT,
@@ -125,6 +139,11 @@ function pageTitleFromWebEvent(e: RawEvent, url: string): string {
   }
 }
 
+/**
+ * Whether a URL hostname is considered work-related (GitHub, docs, Slack, etc.).
+ *
+ * @param url HTTP(S) URL from web watcher events.
+ */
 export function isWorkRelatedUrl(url: string): boolean {
   try {
     return hostMatchesWorkSuffix(new URL(url).hostname)
@@ -133,6 +152,12 @@ export function isWorkRelatedUrl(url: string): boolean {
   }
 }
 
+/**
+ * Aggregate work-related web links by tracked duration.
+ *
+ * @param events Web watcher events in the resolved time range.
+ * @param limit Maximum links to return (default 25).
+ */
 export function aggregateTopWebLinks(
   events: readonly RawEvent[],
   limit: number = TOP_WEB_LINKS_LIMIT,
@@ -242,6 +267,14 @@ type MeetingEventSlice = {
   endMs: number
 }
 
+/**
+ * Detect and merge contiguous video meeting sessions from web events.
+ *
+ * Supports Google Meet, Zoom, and Microsoft Teams URLs.
+ *
+ * @param events Web watcher events in the resolved time range.
+ * @param limit Maximum sessions to return.
+ */
 export function aggregateMeetingSessions(
   events: readonly RawEvent[],
   limit: number = MEETING_SESSION_LIMIT,

@@ -19,6 +19,11 @@ import type {
 
 const WATCHERS: WatcherKind[] = ['window', 'web', 'vscode', 'afk']
 
+/**
+ * Infer ActivityWatch watcher kind from a bucket ID string.
+ *
+ * @param bucketId Bucket ID from ActivityWatch (e.g. `aw-watcher-window_hostname`).
+ */
 export function watcherFromBucketId(bucketId: string): WatcherKind {
   const id = bucketId.toLowerCase()
   if (id.includes('aw-watcher-window')) return 'window'
@@ -28,6 +33,14 @@ export function watcherFromBucketId(bucketId: string): WatcherKind {
   return 'other'
 }
 
+/**
+ * Pick the best matching bucket for a watcher on this machine.
+ *
+ * @param buckets All buckets from ActivityWatch.
+ * @param watcher Target watcher kind.
+ * @param hostname Optional hostname to disambiguate multi-machine buckets.
+ * @returns Matching bucket or `undefined`.
+ */
 export function pickBucket(
   buckets: Bucket[],
   watcher: WatcherKind,
@@ -68,7 +81,9 @@ function newestEvent(events: RawEvent[]): RawEvent | undefined {
   )
 }
 
+/** Options for {@link buildActivitySummary}. */
 export type BuildActivitySummaryOptions = {
+  /** Hostname used to pick per-machine window/web/vscode/afk buckets. */
   hostname?: string
 }
 

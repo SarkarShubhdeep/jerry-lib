@@ -3,12 +3,17 @@ import { NO_TIME_RANGE_ERROR, parseCalendarRangeFromPrompt } from './dates.ts'
 
 const MAX_EXPLICIT_HOURS = 24 * 90
 
+/** Resolved ActivityWatch time window with a human-readable label. */
 export type ActivityTimeRange = {
+  /** Inclusive range start (local semantics). */
   start: Date
+  /** Exclusive or current-time end. */
   end: Date
+  /** Description shown in reports and logs. */
   label: string
 }
 
+/** Parsed time range or `null` when the prompt has no recognizable window. */
 export type ActivityTimeHint = ActivityTimeRange | null
 
 function hoursBetween(start: Date, end: Date): number {
@@ -38,6 +43,11 @@ function calendarToday(): ActivityTimeRange {
   }
 }
 
+/**
+ * Whether lowercase prompt text refers to yesterday's full calendar day.
+ *
+ * @param lower Prompt text already lowercased.
+ */
 export function mentionsYesterday(lower: string): boolean {
   if (/\byesterday\b/.test(lower) || /\byesterdays\b/.test(lower)) {
     return true
@@ -54,6 +64,11 @@ export function mentionsYesterday(lower: string): boolean {
   return false
 }
 
+/**
+ * Format a time range for host logging (locale-aware start/end strings).
+ *
+ * @param range Resolved {@link ActivityTimeRange}.
+ */
 export function formatActivityWindowLog(range: ActivityTimeRange): string {
   const start = range.start.toLocaleString()
   const end = range.end.toLocaleString()
@@ -71,6 +86,11 @@ function calendarYesterday(): ActivityTimeRange {
   }
 }
 
+/**
+ * Whether lowercase prompt text requests full ActivityWatch history.
+ *
+ * @param lower Prompt text already lowercased.
+ */
 export function mentionsFullHistory(lower: string): boolean {
   if (/\ball\s+time\b/.test(lower)) return true
   if (/\b(entire|full)\s+(history|timeline|activitywatch|activity)\b/.test(lower)) {
@@ -88,6 +108,11 @@ export function mentionsFullHistory(lower: string): boolean {
   return false
 }
 
+/**
+ * Build a time range spanning all bucket `created` timestamps on this machine.
+ *
+ * @param buckets ActivityWatch buckets from the host HTTP client.
+ */
 export function rangeFromActivityWatchBuckets(buckets: Bucket[]): ActivityTimeRange {
   const end = new Date()
   let startMs = end.getTime()
@@ -119,6 +144,12 @@ export function rangeFromActivityWatchBuckets(buckets: Bucket[]): ActivityTimeRa
   }
 }
 
+/**
+ * Parse a time window from natural-language text without throwing.
+ *
+ * @param text User prompt (report argument, chat message, etc.).
+ * @returns Resolved range or `null` when no pattern matches.
+ */
 export function parseActivityRangeFromPrompt(text: string): ActivityTimeHint {
   const calendar = parseCalendarRangeFromPrompt(text)
   if (calendar) {
@@ -203,6 +234,14 @@ export function resolveActivityRange(
   throw new Error(NO_TIME_RANGE_ERROR)
 }
 
+/**
+ * Compute the span in hours for a resolved activity range.
+ *
+ * @param prompt User text passed to {@link resolveActivityRange}.
+ * @param hoursFlag Optional fixed hour window.
+ * @param buckets Optional buckets for full-history resolution.
+ * @returns Hours between `start` and `end`.
+ */
 export function resolveRangeHours(prompt: string, hoursFlag?: number, buckets?: Bucket[]): number {
   const range = resolveActivityRange(prompt, hoursFlag, buckets)
   return hoursBetween(range.start, range.end)

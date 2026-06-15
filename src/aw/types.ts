@@ -1,5 +1,7 @@
+/** ActivityWatch watcher kind inferred from bucket IDs. */
 export type WatcherKind = 'window' | 'web' | 'vscode' | 'afk' | 'other'
 
+/** ActivityWatch bucket metadata from `GET /buckets/`. */
 export type Bucket = {
   id: string
   type?: string
@@ -9,12 +11,14 @@ export type Bucket = {
   last_updated?: string
 }
 
+/** Raw ActivityWatch event from `GET /buckets/{id}/events`. */
 export type RawEvent = {
   timestamp: string
   duration: number
   data: Record<string, unknown>
 }
 
+/** Most recent event for a watcher within the resolved time range. */
 export type LatestWatcherEvent = {
   watcher: WatcherKind
   bucketId: string
@@ -23,6 +27,7 @@ export type LatestWatcherEvent = {
   timestamp: string
 }
 
+/** Aggregated app/title duration for one watcher. */
 export type TopActivity = {
   watcher: WatcherKind
   app: string
@@ -31,6 +36,7 @@ export type TopActivity = {
   eventCount: number
 }
 
+/** Work-related web page ranked by tracked duration. */
 export type WebLinkActivity = {
   url: string
   title: string
@@ -38,8 +44,10 @@ export type WebLinkActivity = {
   eventCount: number
 }
 
+/** Video meeting platform detected from a URL. */
 export type MeetingPlatform = 'google-meet' | 'zoom' | 'teams' | 'other'
 
+/** Contiguous meeting session merged from web watcher events. */
 export type MeetingSession = {
   platform: MeetingPlatform
   url: string
@@ -51,6 +59,7 @@ export type MeetingSession = {
   eventCount: number
 }
 
+/** Successful ActivityWatch aggregation result from {@link buildActivitySummary}. */
 export type AwActivitySummary = {
   connected: true
   bucketCount: number
@@ -68,9 +77,11 @@ export type AwActivitySummary = {
   totalApiCalls: number
 }
 
+/** ActivityWatch fetch or aggregation failure (host-level connectivity). */
 export type AwActivityError = {
   connected: false
   error: string
 }
 
+/** Union of successful summary or connectivity error. */
 export type AwActivityResult = AwActivitySummary | AwActivityError

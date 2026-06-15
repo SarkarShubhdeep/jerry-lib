@@ -2,6 +2,12 @@
 
 All notable changes to `@sarkarshubhdeep/jerry-lib` are documented here. Versioning follows [semver](https://semver.org/) on the public `mod.ts` API.
 
+## 0.1.3 — 2026-06-15
+
+### Added
+
+- JSDoc on all public exported symbols for JSR Docs tab and score (≥80% symbol documentation)
+
 ## 0.1.2 — 2026-06-15
 
 ### Added
