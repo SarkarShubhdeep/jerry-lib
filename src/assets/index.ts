@@ -3,16 +3,47 @@ import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 import a3t, { type FsBackend } from 'a3t'
 
-const SHIPPED_ASSETS_ROOT = path.resolve(
-  path.dirname(fileURLToPath(import.meta.url)),
-  '../../assets',
-)
-
 export type AssetsInitOptions = {
   /** User-local override directory (e.g. ~/.config/jerry/assets). */
   overridePath?: string
   /** Shipped defaults root; defaults to package assets/ next to src/. */
   shippedRoot?: string
+}
+
+let defaultShippedRoot: string | undefined
+
+function resolveDefaultShippedRoot(): string {
+  if (defaultShippedRoot !== undefined) return defaultShippedRoot
+
+  const assetsUrl = new URL('../../assets/', import.meta.url)
+  defaultShippedRoot = assetsUrl.protocol === 'file:' ? fileURLToPath(assetsUrl) : assetsUrl.href
+
+  return defaultShippedRoot
+}
+
+function isUrlRoot(rootPath: string): boolean {
+  return rootPath.includes('://')
+}
+
+function normalizeUrlRoot(rootPath: string): string {
+  return rootPath.endsWith('/') ? rootPath : `${rootPath}/`
+}
+
+function isKeyWithinUrlRoot(rootPath: string, key: string): boolean {
+  const rootUrl = new URL(normalizeUrlRoot(rootPath))
+  const assetUrl = new URL(key, rootUrl)
+  const rootPrefix = rootUrl.pathname.endsWith('/') ? rootUrl.pathname : `${rootUrl.pathname}/`
+  return assetUrl.pathname === rootUrl.pathname || assetUrl.pathname.startsWith(rootPrefix)
+}
+
+function isKeyWithinFileRoot(rootPath: string, key: string): boolean {
+  const fullPath = path.join(rootPath, key)
+  const resolvedPath = path.resolve(fullPath)
+  const resolvedRoot = path.resolve(rootPath)
+  return (
+    resolvedPath === resolvedRoot ||
+    resolvedPath.startsWith(resolvedRoot + path.sep)
+  )
 }
 
 function isNotFoundError(error: unknown): boolean {
@@ -24,43 +55,55 @@ function isNotFoundError(error: unknown): boolean {
   )
 }
 
+async function readTextFromUrl(url: URL): Promise<string | null> {
+  if (url.protocol === 'http:' || url.protocol === 'https:') {
+    const response = await fetch(url)
+    if (!response.ok) return null
+    return await response.text()
+  }
+  return await Deno.readTextFile(url)
+}
+
+async function readBinaryFromUrl(url: URL): Promise<Uint8Array | null> {
+  if (url.protocol === 'http:' || url.protocol === 'https:') {
+    const response = await fetch(url)
+    if (!response.ok) return null
+    return new Uint8Array(await response.arrayBuffer())
+  }
+  return await Deno.readFile(url)
+}
+
 async function readTextFromRoot(rootPath: string, key: string): Promise<string | null> {
   try {
-    const fullPath = path.join(rootPath, key)
-    const resolvedPath = path.resolve(fullPath)
-    const resolvedRoot = path.resolve(rootPath)
-
-    if (
-      resolvedPath !== resolvedRoot &&
-      !resolvedPath.startsWith(resolvedRoot + path.sep)
-    ) {
-      return null
+    if (isUrlRoot(rootPath)) {
+      if (!isKeyWithinUrlRoot(rootPath, key)) return null
+      return await readTextFromUrl(new URL(key, normalizeUrlRoot(rootPath)))
     }
 
+    if (!isKeyWithinFileRoot(rootPath, key)) return null
+    const fullPath = path.join(rootPath, key)
     return await readFile(fullPath, { encoding: 'utf8' })
   } catch (error) {
     if (isNotFoundError(error)) return null
+    if (error instanceof Deno.errors.NotFound) return null
     return null
   }
 }
 
 async function readBinaryFromRoot(rootPath: string, key: string): Promise<Uint8Array | null> {
   try {
-    const fullPath = path.join(rootPath, key)
-    const resolvedPath = path.resolve(fullPath)
-    const resolvedRoot = path.resolve(rootPath)
-
-    if (
-      resolvedPath !== resolvedRoot &&
-      !resolvedPath.startsWith(resolvedRoot + path.sep)
-    ) {
-      return null
+    if (isUrlRoot(rootPath)) {
+      if (!isKeyWithinUrlRoot(rootPath, key)) return null
+      return await readBinaryFromUrl(new URL(key, normalizeUrlRoot(rootPath)))
     }
 
+    if (!isKeyWithinFileRoot(rootPath, key)) return null
+    const fullPath = path.join(rootPath, key)
     const buffer = await readFile(fullPath)
     return new Uint8Array(buffer)
   } catch (error) {
     if (isNotFoundError(error)) return null
+    if (error instanceof Deno.errors.NotFound) return null
     return null
   }
 }
@@ -95,7 +138,7 @@ let initialized = false
  * Resolution: local override → shipped defaults → inline fallback in getPrompt().
  */
 export function initAssets(options?: AssetsInitOptions): void {
-  const shippedRoot = options?.shippedRoot ?? SHIPPED_ASSETS_ROOT
+  const shippedRoot = options?.shippedRoot ?? resolveDefaultShippedRoot()
 
   a3t.init({
     fs: {
