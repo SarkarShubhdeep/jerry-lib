@@ -9,12 +9,12 @@
  *   https://jsr.io/@sarkarshubhdeep/jerry-lib
  */
 import {
+  type Bucket,
   buildActivitySummary,
   formatActivityContext,
   initJerryLib,
-  resolveActivityRange,
-  type Bucket,
   type RawEvent,
+  resolveActivityRange,
 } from '../mod.ts'
 
 initJerryLib()
