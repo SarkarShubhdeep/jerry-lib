@@ -1,9 +1,9 @@
 {
   "name": "@sarkarshubhdeep/jerry-lib",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "exports": "./mod.ts",
   "tasks": {
-    "test": "deno test --allow-read --allow-write src/",
+    "test": "deno test --allow-read --allow-write --allow-net src/",
     "check": "deno check mod.ts examples/minimal.ts",
     "lint": "deno lint",
     "fmt": "deno fmt",
