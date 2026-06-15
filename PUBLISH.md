@@ -7,53 +7,54 @@ Package: `@sarkarshubhdeep/jerry-lib`
 1. Sign in at [jsr.io](https://jsr.io) with GitHub
 2. Register scope `@sarkarshubhdeep` (linked to your GitHub username)
 3. Create the package at [jsr.io/new](https://jsr.io/new) if it does not exist yet (`@sarkarshubhdeep/jerry-lib`)
-4. Link GitHub repo `SarkarShubhdeep/jerry-lib` in JSR package settings (optional, for provenance)
-5. For non–GitHub Actions CI: create an access token in JSR account settings and add `JSR_TOKEN` to GitHub Actions secrets
+4. **Link GitHub repo** `SarkarShubhdeep/jerry-lib` in JSR package **Settings** (required for CI OIDC publish + provenance)
 
-**Note:** Deno 2.x has no `deno login` command. Running `deno login` tries to execute a file named `login.ts` in the current directory. Authentication happens **during** `deno publish` (browser opens automatically).
+No `JSR_TOKEN` secret is needed when publishing from GitHub Actions — authentication uses OIDC (`id-token: write`).
+
+## CI publish (recommended)
+
+On every push to `main`, CI runs tests then `npx jsr publish`:
+
+1. Bump `version` in [`deno.json`](./deno.json)
+2. Update [`CHANGELOG.md`](./CHANGELOG.md)
+3. Merge to `main`
+
+The publish job fails if that version is already on JSR (expected when you forget to bump the version).
+
+Workflow: [`.github/workflows/ci.yml`](./.github/workflows/ci.yml)
 
 ## Manual publish
 
 From the repo root:
 
 ```bash
-cd "/Users/shubhdeepsarkar/Developer/my_project/MIE Team Jerry/jerry-lib"
 deno task test
 deno task check
 deno publish --dry-run
-deno publish
-```
-
-On first `deno publish`, the CLI prints a URL like `https://jsr.io/auth?code=XXXX-XXXX`. Open it in your browser, sign in to JSR, and click **Allow** to authorize publishing.
-
-Alternative (same browser auth flow):
-
-```bash
 npx jsr publish
 ```
 
-If `v0.1.0` is already tagged and published, bump `version` in `deno.json` before publishing again.
+On first local publish, the CLI opens a browser URL to authorize JSR.
 
-## CI publish
-
-Push a version tag:
-
-```bash
-git tag v0.1.0
-git push origin v0.1.0
-```
-
-The `publish` job in `.github/workflows/ci.yml` runs `deno publish` when `JSR_TOKEN` is configured.
+If the current version is already published, bump `version` in `deno.json` first.
 
 ## Verify
 
 ```bash
-./scripts/smoke-jsr.sh 0.1.0
+./scripts/smoke-jsr.sh 0.1.3
 ```
 
 Or manually:
 
 ```bash
-deno add jsr:@sarkarshubhdeep/jerry-lib@0.1.0
-npx jsr add @sarkarshubhdeep/jerry-lib@0.1.0
+deno add jsr:@sarkarshubhdeep/jerry-lib@0.1.3
+npx jsr add @sarkarshubhdeep/jerry-lib@0.1.3
 ```
+
+## JSR score checklist (package Settings on jsr.io)
+
+After each release:
+
+- **Description** — one-line summary for search
+- **Runtime compatibility** — mark Deno and Node.js as Supported
+- **Provenance** — appears automatically after a successful CI publish (OIDC)
