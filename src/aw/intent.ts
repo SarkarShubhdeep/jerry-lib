@@ -162,6 +162,19 @@ export function parseActivityRangeFromPrompt(text: string): ActivityTimeHint {
   return null
 }
 
+/**
+ * Parse a natural-language prompt into an ActivityWatch time window.
+ *
+ * Recognizes `today`, `yesterday`, rolling hours (`last 2 hours`), calendar
+ * ranges (`"May 13 to May 20"`), and full-history phrases when bucket metadata
+ * is available.
+ *
+ * @param prompt User text (e.g. report command argument).
+ * @param hoursFlag Optional fixed hour window (CLI `--hours` flag).
+ * @param buckets Optional bucket list for full-history resolution.
+ * @param options `strict: false` falls back to today when parsing fails.
+ * @returns `{ start, end, label }` in local time semantics.
+ */
 export function resolveActivityRange(
   prompt: string,
   hoursFlag?: number,

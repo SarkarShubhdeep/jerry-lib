@@ -1,10 +1,38 @@
 /**
- * jerry-lib — pure Jerry engine (LLM + ActivityWatch formatting + a3t prompts).
+ * jerry-lib — host-agnostic Jerry engine (LLM + ActivityWatch formatting + a3t prompts).
  *
  * No CLI, no stdout, no Cliffy. Hosts (jerry-cli, Electron, web backend) supply
- * I/O boundaries: config loading, AW HTTP fetches, and user-facing output.
+ * I/O boundaries: config loading, ActivityWatch HTTP fetches, and user-facing output.
  *
- * Public API groupings below mirror README.md.
+ * @example Install and initialize
+ * ```ts
+ * import { initJerryLib, generateReport, type JerryLlmConfig } from '@sarkarshubhdeep/jerry-lib'
+ *
+ * initJerryLib({ assets: { overridePath: '/path/to/overrides' } })
+ *
+ * const config: JerryLlmConfig = { apiKey: 'sk-...', model: 'gpt-4o-mini' }
+ * const result = await generateReport(
+ *   { userPrompt: 'yesterday', activityContext: '...', config },
+ *   (phase) => console.log(phase),
+ * )
+ * ```
+ *
+ * @example ActivityWatch pipeline (host fetches HTTP)
+ * ```ts
+ * import {
+ *   resolveActivityRange,
+ *   buildActivitySummary,
+ *   formatActivityContext,
+ * } from '@sarkarshubhdeep/jerry-lib'
+ *
+ * const range = resolveActivityRange('yesterday', undefined, buckets)
+ * const summary = buildActivitySummary(buckets, eventsByBucket, pagesByBucket, range)
+ * const activityContext = formatActivityContext(summary)
+ * ```
+ *
+ * Deep guides: https://github.com/SarkarShubhdeep/jerry-lib/tree/main/docs
+ *
+ * @module
  */
 
 // --- Init ---

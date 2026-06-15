@@ -146,7 +146,18 @@ async function askViaCompletions(
   return content
 }
 
-/** One-shot chat with the configured model (no ActivityWatch). Uses web search when supported. */
+/**
+ * One-shot chat with the configured model (no ActivityWatch).
+ *
+ * Tries OpenAI Responses API with web search when supported; falls back to
+ * Chat Completions streaming. The host supplies `JerryLlmConfig` — this function
+ * never reads environment variables.
+ *
+ * @param question User message sent to the model.
+ * @param config API key and model ID from the host.
+ * @param onStatus Optional callback with phase codes (`thinking`, `web_search_searching`, etc.). Host maps phases to UI labels.
+ * @returns Assistant reply text.
+ */
 export async function ask(
   question: string,
   config: JerryLlmConfig,

@@ -30,7 +30,13 @@ async function writeNarrative(
   return await chatCompletion(client, modelId, messages)
 }
 
-/** Review and refine a draft report against ActivityWatch context. */
+/**
+ * Review and refine a draft report against ActivityWatch context.
+ *
+ * @param input Draft report, original user prompt, formatted AW context, and LLM config.
+ * @param onProgress Optional callback; emits `rechecking` phase.
+ * @returns Refined report markdown.
+ */
 export async function recheckReport(
   input: RecheckReportInput,
   onProgress?: ReportProgress,
@@ -59,7 +65,23 @@ export async function recheckReport(
 
 /**
  * Draft and recheck a work narrative from pre-formatted ActivityWatch context.
- * The host is responsible for fetching AW data and calling formatActivityContext().
+ *
+ * Runs a two-phase pipeline: draft (`writing`), then recheck (`rechecking`).
+ * The host must fetch ActivityWatch data and call {@link formatActivityContext}
+ * before invoking this function.
+ *
+ * @param input User prompt, pre-formatted `activityContext`, and `JerryLlmConfig`.
+ * @param onProgress Optional callback with `ReportPhase` codes.
+ * @returns `ReportResult` with assistant message content.
+ *
+ * @example
+ * ```ts
+ * const result = await generateReport(
+ *   { userPrompt: 'yesterday', activityContext, config },
+ *   (phase) => console.log(phase),
+ * )
+ * console.log(result.message.content)
+ * ```
  */
 export async function generateReport(
   input: GenerateReportInput,

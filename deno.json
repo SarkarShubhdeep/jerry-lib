@@ -1,17 +1,18 @@
 {
   "name": "@sarkarshubhdeep/jerry-lib",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "exports": "./mod.ts",
   "tasks": {
     "test": "deno test --allow-read --allow-write --allow-net src/",
-    "check": "deno check mod.ts examples/minimal.ts",
+    "check": "deno check mod.ts examples/minimal.ts examples/report-pipeline.ts",
+    "check:docs": "deno run --allow-read scripts/check-docs.ts",
     "lint": "deno lint",
     "fmt": "deno fmt",
     "fmt:check": "deno fmt --check",
     "smoke": "deno run --allow-read examples/external-smoke/local-smoke.ts"
   },
   "publish": {
-    "exclude": ["examples/", "**/*_test.ts", ".github/"]
+    "exclude": ["examples/", "docs/", "**/*_test.ts", ".github/"]
   },
   "compilerOptions": {
     "strict": true,

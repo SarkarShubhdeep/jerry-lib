@@ -72,6 +72,19 @@ export type BuildActivitySummaryOptions = {
   hostname?: string
 }
 
+/**
+ * Aggregate raw ActivityWatch events into a structured summary.
+ *
+ * Pure function — the host fetches buckets and events over HTTP, then passes
+ * them here. Use {@link formatActivityContext} to produce LLM-ready markdown.
+ *
+ * @param buckets All AW buckets from `GET /buckets/`.
+ * @param eventsByBucket Events keyed by bucket ID (host-fetched, paginated).
+ * @param pagesByBucket Number of API pages fetched per bucket (for diagnostics).
+ * @param range Time window from {@link resolveActivityRange}.
+ * @param options Optional `hostname` to pick the correct per-machine buckets.
+ * @returns Structured summary with top activities, meetings, web links, and metadata.
+ */
 export function buildActivitySummary(
   buckets: Bucket[],
   eventsByBucket: Record<string, RawEvent[]>,

@@ -34,6 +34,14 @@ function formatMeetingLine(session: MeetingSession): string {
   }, ${session.url})`
 }
 
+/**
+ * Format an {@link AwActivitySummary} as markdown for LLM system prompts.
+ *
+ * Output is injected into report/recheck prompts as `{{activityContext}}`.
+ *
+ * @param summary Result from {@link buildActivitySummary}.
+ * @returns Markdown block describing meetings, top apps, links, and usage notes.
+ */
 export function formatActivityContext(summary: AwActivitySummary): string {
   const lines: string[] = [
     '## ActivityWatch data (local, read-only)',

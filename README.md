@@ -2,9 +2,10 @@
 
 Host-agnostic Jerry engine: a3t prompt loading, ActivityWatch formatting, and OpenAI calls (`ask`, `generateReport`, `recheckReport`).
 
-No CLI, no stdout, no Cliffy. Hosts (jerry-cli, Electron, headless servers) supply config loading, ActivityWatch HTTP fetches, and user-facing output.
+No CLI, no stdout, no Cliffy. **jerry-cli** and **jerry-client (Electron)** are reference adapters — they fetch ActivityWatch, load config, and render output. The engine lives here.
 
-**JSR:** [jsr.io/@sarkarshubhdeep/jerry-lib](https://jsr.io/@sarkarshubhdeep/jerry-lib)
+**JSR:** [jsr.io/@sarkarshubhdeep/jerry-lib](https://jsr.io/@sarkarshubhdeep/jerry-lib)  
+**Guides:** [docs/](https://github.com/SarkarShubhdeep/jerry-lib/tree/main/docs) · [API reference](https://jsr.io/@sarkarshubhdeep/jerry-lib/doc)
 
 ## Install
 
@@ -13,7 +14,7 @@ Published exclusively on [JSR](https://jsr.io).
 ### Deno
 
 ```bash
-deno add jsr:@sarkarshubhdeep/jerry-lib@^0.1.0
+deno add jsr:@sarkarshubhdeep/jerry-lib@^0.1.2
 ```
 
 ```ts
@@ -28,14 +29,23 @@ import {
 ### Node / Electron
 
 ```bash
-npx jsr add @sarkarshubhdeep/jerry-lib@^0.1.0
+npx jsr add @sarkarshubhdeep/jerry-lib@^0.1.2
 ```
 
-Adds `npm:@jsr/sarkarshubhdeep__jerry-lib` to `package.json`. Import the same package name:
+Import the same package name: `@sarkarshubhdeep/jerry-lib`.
 
-```ts
-import { initJerryLib, ask } from '@sarkarshubhdeep/jerry-lib'
-```
+## Quick start
+
+Integration steps (same on JSR and GitHub):
+
+1. Install from JSR
+2. `initJerryLib({ assets: { overridePath } })` once per process
+3. Host loads `JerryLlmConfig` (library never reads env)
+4. Host fetches ActivityWatch over HTTP
+5. `resolveActivityRange` → `buildActivitySummary` → `formatActivityContext`
+6. `generateReport` / `ask` with progress callbacks
+
+See [docs/host-integration.md](https://github.com/SarkarShubhdeep/jerry-lib/blob/main/docs/host-integration.md) for the full walkthrough and [docs/agents-and-ides.md](https://github.com/SarkarShubhdeep/jerry-lib/blob/main/docs/agents-and-ides.md) for ML agent checklists.
 
 ## `initJerryLib({ assets })`
 
@@ -46,27 +56,21 @@ Call once per process before `ask` or `generateReport`. Prompts auto-initialize 
 | `assets.overridePath` | User-local directory for prompt overrides (resolved before shipped defaults) |
 | `assets.shippedRoot`  | Optional root for bundled prompts; defaults to package `assets/`              |
 
-### Host examples
-
 ```ts
 import { join } from 'node:path'
 import { homedir } from 'node:os'
 import { initJerryLib } from '@sarkarshubhdeep/jerry-lib'
 
-// CLI host (~/.config/jerry/assets)
+// CLI host
 initJerryLib({
   assets: { overridePath: join(homedir(), '.config/jerry/assets') },
 })
 
-// Electron host (app userData)
-// import { app } from 'electron'
-initJerryLib({
-  assets: { overridePath: join(app.getPath('userData'), 'assets') },
-})
-
-// Headless server (shipped defaults only)
-initJerryLib()
+// Electron: join(app.getPath('userData'), 'assets')
+// Server: initJerryLib() — shipped defaults only
 ```
+
+Prompt overrides: [docs/a3t-prompts.md](https://github.com/SarkarShubhdeep/jerry-lib/blob/main/docs/a3t-prompts.md).
 
 ## Usage
 
@@ -78,9 +82,9 @@ import {
   buildActivitySummary,
   formatActivityContext,
   generateReport,
+  resolveActivityRange,
   type JerryLlmConfig,
 } from '@sarkarshubhdeep/jerry-lib'
-import { hostname } from 'node:os'
 
 const config: JerryLlmConfig = {
   apiKey: process.env.OPENAI_API_KEY ?? '',
@@ -89,60 +93,41 @@ const config: JerryLlmConfig = {
 
 // Ask (no ActivityWatch)
 const answer = await ask('What is Deno?', config, (update) => {
-  // Map update.phase to UI copy; update.label is omitted by the library
-  console.log(update.phase, update.durationMs)
+  console.log(update.phase) // host maps phase → UI label
 })
 
-// Report (host fetches AW buckets/events via HTTP, then lib aggregates + formats)
+// Report — host fetches AW buckets/events via HTTP first
+const range = resolveActivityRange('yesterday', undefined, buckets)
 const summary = buildActivitySummary(
   buckets,
   eventsByBucket,
   pagesByBucket,
-  { start, end, label: 'Yesterday (full calendar day, local time)' },
-  { hostname: hostname() },
+  range,
 )
 const activityContext = formatActivityContext(summary)
 
 const result = await generateReport(
-  {
-    userPrompt: 'Summarize my work yesterday',
-    activityContext,
-    config,
-  },
-  (phase) => {
-    // phase is 'writing' | 'rechecking'
-    console.log(phase)
-  },
+  { userPrompt: 'Summarize my work yesterday', activityContext, config },
+  (phase) => console.log(phase), // 'writing' | 'rechecking'
 )
 ```
 
-## Progress and status
+Runnable mock example: [examples/report-pipeline.ts](./examples/report-pipeline.ts).
 
-Hosts own all user-facing labels.
+## Progress phases
 
-### Report phases (`ReportPhase`)
+Hosts own all user-facing labels. See [JSR Docs](https://jsr.io/@sarkarshubhdeep/jerry-lib/doc/~/ReportPhase) for `ReportPhase` and `LlmStatusPhase` types.
 
-| Phase        | Typical host label             |
-| ------------ | ------------------------------ |
-| `writing`    | Writing work narrative…        |
-| `rechecking` | Rechecking the work narrative… |
+## API reference
 
-### Ask status phases (`LlmStatusPhase`)
-
-| Phase                  | Typical host label              |
-| ---------------------- | ------------------------------- |
-| `thinking`             | Thinking…                       |
-| `web_search_searching` | Searching web…                  |
-| `web_search_done`      | Searched web (use `durationMs`) |
-| `finalizing`           | Finalizing answer…              |
-| `done`                 | Done                            |
+Full symbol documentation: [jsr.io/@sarkarshubhdeep/jerry-lib/doc](https://jsr.io/@sarkarshubhdeep/jerry-lib/doc)
 
 ## Versioning
 
 Semver on the public `mod.ts` API. See [CHANGELOG.md](./CHANGELOG.md).
 
 - `0.x` — API stabilizing
-- **Patch** — bug fixes, prompt text tweaks
+- **Patch** — bug fixes, prompt text tweaks, documentation
 - **Minor** — new backward-compatible exports
 - **Major** — breaking API changes
 
@@ -151,6 +136,7 @@ Semver on the public `mod.ts` API. See [CHANGELOG.md](./CHANGELOG.md).
 ```bash
 deno task test
 deno task check
+deno task check:docs
 deno task lint
 deno task fmt
 ```
@@ -159,92 +145,3 @@ deno task fmt
 
 - [openai](https://www.npmjs.com/package/openai) — LLM client (npm)
 - [a3t](https://github.com/mieweb/a3t) — layered prompt asset loader (vendored in `vendor/a3t/`)
-
-## Public API
-
-Mirrors [`mod.ts`](./mod.ts).
-
-### Init
-
-| Export                | Kind     |
-| --------------------- | -------- |
-| `initJerryLib`        | function |
-| `JerryLibInitOptions` | type     |
-
-### LLM
-
-| Export           | Kind     |
-| ---------------- | -------- |
-| `ask`            | function |
-| `generateReport` | function |
-| `recheckReport`  | function |
-
-### ActivityWatch
-
-| Export                      | Kind     |
-| --------------------------- | -------- |
-| `buildActivitySummary`      | function |
-| `formatActivityContext`     | function |
-| `filterEventsInRange`       | function |
-| `aggregateTopActivities`    | function |
-| `aggregateTopWebLinks`      | function |
-| `aggregateMeetingSessions`  | function |
-| `mergeTopActivities`        | function |
-| `isWorkRelatedUrl`          | function |
-| `pickBucket`                | function |
-| `watcherFromBucketId`       | function |
-| `resolveActivityRange`      | function |
-| `resolveRangeHours`         | function |
-| `formatActivityWindowLog`   | function |
-| `mentionsYesterday`         | function |
-| `mentionsFullHistory`       | function |
-| `ActivityTimeRange`         | type     |
-| `BuildActivitySummaryOptions` | type   |
-
-### Assets (advanced)
-
-Prefer `initJerryLib` for setup. These are escape hatches for custom prompt keys or cache control.
-
-| Export              | Kind     |
-| ------------------- | -------- |
-| `initAssets`        | function |
-| `getPrompt`         | function |
-| `clearAssetCache`   | function |
-| `AssetsInitOptions` | type     |
-
-### Models
-
-| Export                 | Kind     |
-| ---------------------- | -------- |
-| `DEFAULT_OPENAI_MODEL` | const    |
-| `OPENAI_MODEL_IDS`     | const    |
-| `isAllowedOpenAiModel` | function |
-| `OpenAiModelId`        | type     |
-
-### Types
-
-| Export                | Kind |
-| --------------------- | ---- |
-| `JerryLlmConfig`      | type |
-| `ReportPhase`         | type |
-| `ReportProgress`      | type |
-| `GenerateReportInput` | type |
-| `RecheckReportInput`  | type |
-| `ReportResult`        | type |
-| `ChatMessage`         | type |
-| `ChatResponse`        | type |
-| `ChatRole`            | type |
-| `LlmApiPath`          | type |
-| `LlmStatusCallback`   | type |
-| `LlmStatusPhase`      | type |
-| `LlmStatusUpdate`     | type |
-| `AwActivitySummary`   | type |
-| `AwActivityResult`    | type |
-| `AwActivityError`     | type |
-| `Bucket`              | type |
-| `RawEvent`            | type |
-| `TopActivity`         | type |
-| `WebLinkActivity`     | type |
-| `MeetingSession`      | type |
-| `LatestWatcherEvent`  | type |
-| `WatcherKind`         | type |

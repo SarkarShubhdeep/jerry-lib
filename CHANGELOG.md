@@ -2,6 +2,19 @@
 
 All notable changes to `@sarkarshubhdeep/jerry-lib` are documented here. Versioning follows [semver](https://semver.org/) on the public `mod.ts` API.
 
+## 0.1.2 — 2026-06-15
+
+### Added
+
+- GitHub guides: `docs/host-integration.md`, `docs/a3t-prompts.md`, `docs/agents-and-ides.md`
+- `examples/report-pipeline.ts` — mock AW data dry-run pipeline
+- `deno task check:docs` — verify README links and doc files stay in sync
+- JSDoc on public API exports for [JSR Docs tab](https://jsr.io/@sarkarshubhdeep/jerry-lib/doc)
+
+### Changed
+
+- README restructured: quick start + links to deep guides (API tables moved to JSR Docs)
+
 ## 0.1.1 — 2026-06-15
 
 ### Fixed
