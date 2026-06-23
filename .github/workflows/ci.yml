@@ -23,8 +23,12 @@ jobs:
             ${{ runner.os }}-deno-
       - name: Install dependencies
         run: deno install
-      - name: Test
-        run: deno task test
+      - name: Test with coverage
+        run: deno test --allow-read --allow-write --allow-net --coverage=.coverage src/ mod_test.ts
+      - name: Coverage report
+        run: deno coverage .coverage
+      - name: Benchmarks
+        run: deno bench --allow-read src/
       - name: Typecheck
         run: deno task check
       - name: Check docs links
@@ -33,6 +37,25 @@ jobs:
         run: deno task lint
       - name: Check formatting
         run: deno task fmt:check
+      - name: Read package version
+        id: version
+        run: echo "version=$(jq -r .version deno.json)" >> "$GITHUB_OUTPUT"
+      - name: Check version bump
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        run: |
+          CURRENT="${{ steps.version.outputs.version }}"
+          LAST_TAG=$(git describe --tags --abbrev=0 2>/dev/null || echo "none")
+          if [ "$LAST_TAG" != "none" ] && [ "v$CURRENT" = "$LAST_TAG" ]; then
+            echo "ERROR: deno.json version ($CURRENT) matches last tag ($LAST_TAG). Bump it before release."
+            exit 1
+          fi
+      - name: Check CHANGELOG entry
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        run: |
+          grep -F "## ${{ steps.version.outputs.version }}" CHANGELOG.md || (
+            echo "No CHANGELOG entry for version ${{ steps.version.outputs.version }}"
+            exit 1
+          )
 
   publish:
     name: Publish
