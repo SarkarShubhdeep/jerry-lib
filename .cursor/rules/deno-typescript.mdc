@@ -1,0 +1,55 @@
+---
+description: Deno & TypeScript coding standards for jerry-lib source files
+globs: **/*.ts
+alwaysApply: false
+---
+
+# Deno & TypeScript Standards
+
+## Runtime
+
+- Target **Deno** as the primary runtime. Node/Electron compatibility is achieved through JSR's npm compat layer, not by adding Node-specific shims to library code.
+- **Import map** (`deno.json` `imports` field) is the single source of truth for external packages. Add new dependencies there, not as inline `jsr:` or `npm:` specifiers scattered through source files.
+- `node:` prefixed built-ins (`node:fs/promises`, `node:path`, `node:url`) are permitted **only** in files that already use them for cross-runtime asset loading (currently `src/assets/index.ts`). Alongside `node:` APIs, Deno-native equivalents (`Deno.readTextFile`, `Deno.errors.NotFound`) may coexist in that same file for Deno-native paths. Do not add new `node:` imports to other files without a cross-runtime justification.
+- Never use `import.meta.main` or top-level side-effects outside `examples/`.
+
+## TypeScript
+
+- Strict mode is assumed (`deno check` enforces it). No `// @ts-ignore` unless accompanied by a comment explaining why it's unavoidable.
+- Prefer explicit return types on all exported functions.
+- Use `type` imports for type-only symbols: `import type { Foo } from './types.ts'`.
+
+## Error handling
+
+```typescript
+// ❌ BAD — silent swallow
+try { await doThing() } catch (_) {}
+
+// ✅ GOOD — propagate with context
+try {
+  await doThing()
+} catch (cause) {
+  throw new Error('doThing failed: <reason>', { cause })
+}
+```
+
+## Tests
+
+- Test files are co-located: `foo.ts` → `foo_test.ts`.
+- Use `Deno.test` with descriptive names. No third-party test frameworks.
+- Run: `deno task test` — never skip tests before committing.
+
+## Formatting & lint
+
+- `deno task fmt` and `deno task lint` must pass with zero warnings.
+- Style (enforced by `deno fmt`, configured in `deno.json`):
+  - **No semicolons** (`"semiColons": false`)
+  - **Single quotes** (`"singleQuote": true`)
+  - Indent: 2 spaces, no tabs
+  - Line width: 100 characters
+- No unused imports — `deno lint` will catch them.
+
+## Prompt assets
+
+- Prompt text files live in `assets/prompts/*.txt`.
+- Load them exclusively via the a3t loader (`src/assets/`), never with raw `Deno.readTextFile` in application code.

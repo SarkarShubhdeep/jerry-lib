@@ -1,0 +1,43 @@
+---
+description: Core library design principles — host-agnostic, no side effects, no env reads
+alwaysApply: true
+---
+
+# Library Architecture Principles
+
+## Hard constraints (never violate)
+
+- **No CLI / no stdout** — the library never calls `console.log`, `Deno.stdout`, or `process.stdout` directly. All output goes through progress callbacks passed in by the host.
+- **No env reads** — never call `Deno.env.get`, `process.env`, or equivalent. The host always injects `JerryLlmConfig` (apiKey, model).
+- **No HTTP fetching of ActivityWatch** — the host fetches AW buckets/events over HTTP and passes them in. The library only processes data it receives.
+- **No Cliffy / no CLI framework** — this is a library, not a CLI app.
+
+## Module boundaries
+
+| Path                   | Responsibility                                                   | Public? |
+|------------------------|------------------------------------------------------------------|---------|
+| `src/aw/`              | ActivityWatch types, aggregation, intent, formatting             | Partly  |
+| `src/aw/dates.ts`      | Internal date helpers                                            | No      |
+| `src/aw/time-format.ts`| Internal time formatting helpers                                 | No      |
+| `src/llm/`             | OpenAI calls, prompt building, model allowlist, status types     | Partly  |
+| `src/llm/internal.ts`  | `requireApiKey`, `resolveModel`, `chatCompletion` — private only | No      |
+| `src/assets/`          | a3t prompt loader, layered FS backend, override path resolution  | Partly  |
+| `src/init.ts`          | `initJerryLib()` — one-time asset configuration                  | Yes     |
+| `mod.ts`               | Public API barrel — the only surface consumers import            | Yes     |
+
+"Partly" means only the symbols re-exported from `mod.ts` are public; everything else in that directory is internal.
+
+## Progress / phases
+
+Two separate callback shapes exist — do not conflate them:
+- **`LlmStatusCallback`** (`ask`) — receives `LlmStatusUpdate` objects with `phase` (`thinking`, `web_search_searching`, `web_search_done`, `finalizing`, `done`) and optional `durationMs`.
+- **`ReportProgress`** (`generateReport`, `recheckReport`) — receives `ReportPhase` strings (`writing`, `rechecking`).
+
+Hosts own all user-facing labels. The library never embeds UI copy — it emits typed phase codes only.
+
+## Adding a new export
+
+1. Implement in the appropriate `src/` subdirectory.
+2. Add a JSDoc `/** ... */` comment — every exported symbol must be documented.
+3. Re-export from `mod.ts` only.
+4. Update `CHANGELOG.md` under the correct semver bump level.

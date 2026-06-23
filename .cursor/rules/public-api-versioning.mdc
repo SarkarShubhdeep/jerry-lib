@@ -1,0 +1,45 @@
+---
+description: Public API barrel (mod.ts) and semver versioning rules
+globs: mod.ts
+alwaysApply: false
+---
+
+# Public API & Versioning
+
+## mod.ts is the sole public surface
+
+- Every export consumed by hosts must appear in `mod.ts`.
+- Internal helpers in `src/` that are not re-exported from `mod.ts` are private — do not rely on direct deep imports from consumers.
+- When removing or renaming an export, that is a **breaking change** (major bump).
+
+## Semver rules
+
+| Change type                                    | Bump  |
+|------------------------------------------------|-------|
+| Bug fix, prompt text tweak, doc update         | Patch |
+| New backward-compatible export                 | Minor |
+| Removed/renamed export, changed function sig   | Major |
+
+Currently in `0.x` — API is stabilizing. All minor bumps may have breaking changes at `0.x`.
+
+## JSDoc requirement
+
+Every symbol exported from `mod.ts` must have a JSDoc comment. The JSR doc site is generated from these comments.
+
+```typescript
+// ❌ BAD
+export function ask(...) { ... }
+
+// ✅ GOOD
+/**
+ * Send a single prompt to the LLM without ActivityWatch context.
+ * @param prompt - The user question.
+ * @param config - LLM provider config supplied by the host.
+ * @param onStatus - Optional progress callback.
+ */
+export function ask(...) { ... }
+```
+
+## Changelog
+
+Update `CHANGELOG.md` for every version bump. Use the format already present in the file — do not invent new section styles.

@@ -1,0 +1,36 @@
+---
+description: Project identity, workspace boundaries, and AI access guardrails
+alwaysApply: true
+---
+
+# jerry-lib — Project Scope & AI Guardrails
+
+## What this project is
+
+`@sarkarshubhdeep/jerry-lib` is a **host-agnostic Deno/TypeScript library** — the Jerry engine. It provides:
+- a3t layered prompt loading (`assets/prompts/`, `src/assets/`)
+- ActivityWatch data resolution, aggregation, and formatting (`src/aw/`)
+- OpenAI LLM calls: `ask`, `generateReport`, `recheckReport` (`src/llm/`)
+- Public entry point: `mod.ts` — the sole import surface for hosts
+
+Published on JSR only. No CLI, no stdout, no Cliffy. The library exposes a pure API; all host concerns (env, rendering, HTTP fetching) belong to adapters (jerry-cli, jerry-client).
+
+## Workspace boundary — STRICT
+
+**You MUST only read, write, or reference files inside this repository:**
+
+```
+/Users/shubhdeepsarkar/Developer/my_project/MIE Team Jerry/jerry-lib/
+```
+
+- Do NOT read files from `~/`, `/Users/shubhdeepsarkar/`, or any path outside the workspace root above.
+- Do NOT traverse `../` to reach sibling projects (e.g. `jerry-cli`, `jerry-client`).
+- Do NOT access shell history, SSH keys, `.env` files, or any other files on this computer outside this repo.
+- Do NOT infer or assume contents of other projects that are not open in this session.
+- If a task requires knowledge of an external project, ask the user to open or paste the relevant file.
+
+## In-repo paths that are off-limits
+
+- `vendor/` — vendored third-party code; read only if directly debugging a vendor issue, never modify.
+- `.git/` — never read or modify.
+- `deno.lock` — never manually edit; let `deno` manage it.
