@@ -2,6 +2,22 @@
 
 All notable changes to `@sarkarshubhdeep/jerry-lib` are documented here. Versioning follows [semver](https://semver.org/) on the public `mod.ts` API.
 
+## 0.1.4 — 2026-06-23
+
+### Added
+
+- Full unit test suite: `mod_test.ts` plus per-module tests for `aw/aggregate`, `aw/dates`,
+  `aw/event-range`, `aw/format`, `aw/pipeline`, `aw/time-format`, `llm/internal`, `llm/models`
+- Benchmark suite: `aw/aggregate_bench`, `aw/build-summary_bench`, `aw/format_bench`
+- `deno task test:coverage` — runs tests with coverage and prints report
+- `deno task bench` — runs all benchmarks
+
+### Changed
+
+- CI: adds coverage report, benchmark run, version-bump guard, and CHANGELOG-entry guard on
+  pushes to `main`
+- `deno.json` publish exclude now also drops `**/*_bench.ts` and root-level `mod_test.ts`
+
 ## 0.1.3 — 2026-06-15
 
 ### Added
