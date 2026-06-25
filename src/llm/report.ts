@@ -1,4 +1,4 @@
-import OpenAI from 'openai'
+import type OpenAI from 'openai'
 import type {
   GenerateReportInput,
   RecheckReportInput,
@@ -7,7 +7,7 @@ import type {
 } from '../types.ts'
 import type { ChatMessage } from './types.ts'
 import { getRecheckPrompt, getReportPrompt } from './prompt.ts'
-import { chatCompletion, requireApiKey, resolveModel } from './internal.ts'
+import { buildClient, chatCompletion, requireApiKey, resolveModel } from './internal.ts'
 
 async function writeNarrative(
   client: OpenAI,
@@ -41,9 +41,10 @@ export async function recheckReport(
   input: RecheckReportInput,
   onProgress?: ReportProgress,
 ): Promise<string> {
+  const provider = input.config.provider ?? 'openai'
   const apiKey = requireApiKey(input.config.apiKey)
-  const modelId = resolveModel(input.config.model)
-  const client = new OpenAI({ apiKey })
+  const modelId = resolveModel(input.config.model, provider)
+  const client = buildClient(apiKey, provider)
 
   onProgress?.('rechecking')
   const messages: ChatMessage[] = [
@@ -87,9 +88,10 @@ export async function generateReport(
   input: GenerateReportInput,
   onProgress?: ReportProgress,
 ): Promise<ReportResult> {
+  const provider = input.config.provider ?? 'openai'
   const apiKey = requireApiKey(input.config.apiKey)
-  const modelId = resolveModel(input.config.model)
-  const client = new OpenAI({ apiKey })
+  const modelId = resolveModel(input.config.model, provider)
+  const client = buildClient(apiKey, provider)
 
   let content = await writeNarrative(
     client,

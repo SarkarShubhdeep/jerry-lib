@@ -1,10 +1,10 @@
 {
   "name": "@sarkarshubhdeep/jerry-lib",
-  "version": "0.1.4",
+  "version": "0.2.0",
   "exports": "./mod.ts",
   "tasks": {
-    "test": "deno test --allow-read --allow-write --allow-net src/ mod_test.ts",
-    "test:coverage": "deno test --allow-read --allow-write --allow-net --coverage=.coverage src/ mod_test.ts && deno coverage .coverage",
+    "test": "deno test --allow-read --allow-write --allow-net --allow-env src/ mod_test.ts",
+    "test:coverage": "deno test --allow-read --allow-write --allow-net --allow-env --coverage=.coverage src/ mod_test.ts && deno coverage .coverage",
     "bench": "deno bench --allow-read src/",
     "check": "deno check mod.ts examples/minimal.ts examples/report-pipeline.ts mod_test.ts",
     "check:docs": "deno run --allow-read scripts/check-docs.ts",

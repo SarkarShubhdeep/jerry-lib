@@ -1,14 +1,19 @@
 import type { ChatResponse } from './llm/types.ts'
 
+/** Supported LLM provider identifiers. */
+export type LlmProvider = 'openai' | 'gemini'
+
 /**
  * LLM credentials and model selection.
  *
  * Supplied by the host application — jerry-lib never reads environment variables.
  */
 export type JerryLlmConfig = {
-  /** OpenAI API key. */
+  /** LLM provider. Defaults to `'openai'` when omitted. */
+  provider?: LlmProvider
+  /** API key for the chosen provider. */
   apiKey: string
-  /** OpenAI model ID (see {@link OPENAI_MODEL_IDS}). */
+  /** Model ID (see {@link OPENAI_MODEL_IDS} or {@link GEMINI_MODEL_IDS}). */
   model: string
 }
 

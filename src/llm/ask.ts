@@ -2,7 +2,7 @@ import OpenAI from 'openai'
 import type { EasyInputMessage } from 'openai/resources/responses/responses'
 import type { JerryLlmConfig } from '../types.ts'
 import { getAskPrompt } from './prompt.ts'
-import { requireApiKey, resolveModel } from './internal.ts'
+import { buildClient, requireApiKey, resolveModel } from './internal.ts'
 import type { LlmStatusCallback, LlmStatusUpdate } from './status.ts'
 
 function emitStatus(
@@ -149,12 +149,13 @@ async function askViaCompletions(
 /**
  * One-shot chat with the configured model (no ActivityWatch).
  *
- * Tries OpenAI Responses API with web search when supported; falls back to
- * Chat Completions streaming. The host supplies `JerryLlmConfig` — this function
- * never reads environment variables.
+ * For OpenAI, tries the Responses API with web search when supported; falls back to
+ * Chat Completions streaming. For Gemini, uses Chat Completions directly (Responses API
+ * is OpenAI-only). The host supplies `JerryLlmConfig` — this function never reads
+ * environment variables.
  *
  * @param question User message sent to the model.
- * @param config API key and model ID from the host.
+ * @param config API key, model ID, and optional provider from the host.
  * @param onStatus Optional callback with phase codes (`thinking`, `web_search_searching`, etc.). Host maps phases to UI labels.
  * @returns Assistant reply text.
  */
@@ -163,11 +164,16 @@ export async function ask(
   config: JerryLlmConfig,
   onStatus?: LlmStatusCallback,
 ): Promise<string> {
+  const provider = config.provider ?? 'openai'
   const apiKey = requireApiKey(config.apiKey)
-  const modelId = resolveModel(config.model)
-  const client = new OpenAI({ apiKey })
+  const modelId = resolveModel(config.model, provider)
+  const client = buildClient(apiKey, provider)
 
   emitStatus(onStatus, { phase: 'thinking' })
+
+  if (provider === 'gemini') {
+    return await askViaCompletions(client, modelId, question, onStatus)
+  }
 
   try {
     return await askViaResponses(client, modelId, question, onStatus)

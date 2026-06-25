@@ -2,6 +2,26 @@
 
 All notable changes to `@sarkarshubhdeep/jerry-lib` are documented here. Versioning follows [semver](https://semver.org/) on the public `mod.ts` API.
 
+## 0.2.0 — 2026-06-25
+
+### Added
+
+- **Gemini provider support**: `JerryLlmConfig` now accepts an optional `provider` field (`'openai'` | `'gemini'`). Omitting `provider` defaults to `'openai'`, so existing hosts require no changes.
+- `GEMINI_MODEL_IDS` allowlist: `gemini-2.5-pro`, `gemini-2.5-flash`, `gemini-2.0-flash`, `gemini-1.5-pro`, `gemini-1.5-flash`
+- `DEFAULT_GEMINI_MODEL` constant (`gemini-2.5-flash`)
+- `GeminiModelId` type and `isAllowedGeminiModel` type guard
+- `LlmProvider` type export
+
+### Changed
+
+- `ask`, `generateReport`, and `recheckReport` now route to Google's OpenAI-compatible endpoint when `provider: 'gemini'` is set
+- `ask` skips the OpenAI Responses API (web search) for Gemini and uses Chat Completions directly
+- `API_KEY_ERROR` message generalized from "OpenAI API key" to "API key"
+
+### Notes
+
+Minor bump (v0.2.0) because all changes are backward-compatible — hosts using the existing OpenAI-only API continue to work without modification.
+
 ## 0.1.4 — 2026-06-23
 
 ### Added
