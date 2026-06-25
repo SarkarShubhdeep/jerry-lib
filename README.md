@@ -1,6 +1,6 @@
 # @sarkarshubhdeep/jerry-lib
 
-Host-agnostic Jerry engine: a3t prompt loading, ActivityWatch formatting, and OpenAI calls (`ask`, `generateReport`, `recheckReport`).
+Host-agnostic Jerry engine: a3t prompt loading, ActivityWatch formatting, and LLM calls (`ask`, `generateReport`, `recheckReport`) — supports OpenAI and Gemini.
 
 No CLI, no stdout, no Cliffy. **jerry-cli** and **jerry-client (Electron)** are reference adapters — they fetch ActivityWatch, load config, and render output. The engine lives here.
 
@@ -14,7 +14,7 @@ Published exclusively on [JSR](https://jsr.io).
 ### Deno
 
 ```bash
-deno add jsr:@sarkarshubhdeep/jerry-lib@^0.1.2
+deno add jsr:@sarkarshubhdeep/jerry-lib@^0.2.0
 ```
 
 ```ts
@@ -29,7 +29,7 @@ import {
 ### Node / Electron
 
 ```bash
-npx jsr add @sarkarshubhdeep/jerry-lib@^0.1.2
+npx jsr add @sarkarshubhdeep/jerry-lib@^0.2.0
 ```
 
 Import the same package name: `@sarkarshubhdeep/jerry-lib`.
@@ -49,7 +49,9 @@ See [docs/host-integration.md](https://github.com/SarkarShubhdeep/jerry-lib/blob
 
 ## `initJerryLib({ assets })`
 
-Call once per process before `ask` or `generateReport`. Prompts auto-initialize with shipped defaults on first use if you skip this.
+Call once per process before `ask` or `generateReport`.
+
+> **Warning:** If you omit `overridePath`, the library auto-initializes on first use with shipped defaults only. User config files under `~/.config/<app>/assets/` are **silently ignored** — no error is thrown. Always pass `overridePath` if your host should respect user prompt overrides.
 
 | Option                | Description                                                                  |
 | --------------------- | ---------------------------------------------------------------------------- |
@@ -86,9 +88,17 @@ import {
   type JerryLlmConfig,
 } from '@sarkarshubhdeep/jerry-lib'
 
+// OpenAI (default — provider field is optional)
 const config: JerryLlmConfig = {
   apiKey: process.env.OPENAI_API_KEY ?? '',
   model: 'gpt-4o-mini',
+}
+
+// Gemini
+const geminiConfig: JerryLlmConfig = {
+  provider: 'gemini',
+  apiKey: process.env.GEMINI_API_KEY ?? '',
+  model: 'gemini-2.5-flash',
 }
 
 // Ask (no ActivityWatch)
@@ -143,5 +153,5 @@ deno task fmt
 
 ## Dependencies
 
-- [openai](https://www.npmjs.com/package/openai) — LLM client (npm)
+- [openai](https://www.npmjs.com/package/openai) — LLM client for OpenAI and Gemini (via Google's OpenAI-compatible endpoint) (npm)
 - [a3t](https://github.com/mieweb/a3t) — layered prompt asset loader (vendored in `vendor/a3t/`)

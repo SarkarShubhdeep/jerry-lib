@@ -77,7 +77,11 @@ export {
 
 // --- Models ---
 export {
+  DEFAULT_GEMINI_MODEL,
   DEFAULT_OPENAI_MODEL,
+  GEMINI_MODEL_IDS,
+  type GeminiModelId,
+  isAllowedGeminiModel,
   isAllowedOpenAiModel,
   OPENAI_MODEL_IDS,
   type OpenAiModelId,
@@ -87,6 +91,7 @@ export {
 export type {
   GenerateReportInput,
   JerryLlmConfig,
+  LlmProvider,
   RecheckReportInput,
   ReportPhase,
   ReportProgress,

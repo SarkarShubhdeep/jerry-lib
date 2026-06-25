@@ -20,18 +20,20 @@ How to integrate [@sarkarshubhdeep/jerry-lib](https://jsr.io/@sarkarshubhdeep/je
 ### Deno
 
 ```bash
-deno add jsr:@sarkarshubhdeep/jerry-lib@^0.1.2
+deno add jsr:@sarkarshubhdeep/jerry-lib@^0.2.0
 ```
 
 ### Node / Electron
 
 ```bash
-npx jsr add @sarkarshubhdeep/jerry-lib@^0.1.2
+npx jsr add @sarkarshubhdeep/jerry-lib@^0.2.0
 ```
 
 ## Step 2 — Initialize once per process
 
-Call `initJerryLib` before `ask` or `generateReport`. Choose an override path suited to your host:
+Call `initJerryLib` before `ask` or `generateReport`. Choose an override path suited to your host.
+
+> **Warning:** If you omit `overridePath`, the library auto-initializes on first use with shipped defaults only. Any files the user has placed under `~/.config/<app>/assets/` are **silently ignored** — no error or warning is emitted. Always pass `overridePath` when your host should respect user prompt overrides.
 
 ```ts
 import { initJerryLib } from '@sarkarshubhdeep/jerry-lib'
@@ -62,9 +64,17 @@ The host supplies credentials. jerry-lib does not read `process.env` or `.env` f
 ```ts
 import type { JerryLlmConfig } from '@sarkarshubhdeep/jerry-lib'
 
+// OpenAI (default — `provider` is optional, defaults to 'openai')
 const config: JerryLlmConfig = {
   apiKey: process.env.OPENAI_API_KEY ?? '',
   model: 'gpt-4o-mini',
+}
+
+// Gemini — add `provider: 'gemini'` and pass a Google AI Studio key
+const geminiConfig: JerryLlmConfig = {
+  provider: 'gemini',
+  apiKey: process.env.GEMINI_API_KEY ?? '',
+  model: 'gemini-2.5-flash',
 }
 ```
 

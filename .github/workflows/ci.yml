@@ -24,7 +24,7 @@ jobs:
       - name: Install dependencies
         run: deno install
       - name: Test with coverage
-        run: deno test --allow-read --allow-write --allow-net --coverage=.coverage src/ mod_test.ts
+        run: deno test --allow-read --allow-write --allow-net --allow-env --coverage=.coverage src/ mod_test.ts
       - name: Coverage report
         run: deno coverage .coverage
       - name: Benchmarks
