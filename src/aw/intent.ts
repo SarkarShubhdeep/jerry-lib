@@ -3,6 +3,12 @@ import { NO_TIME_RANGE_ERROR, parseCalendarRangeFromPrompt } from './dates.ts'
 
 const MAX_EXPLICIT_HOURS = 24 * 90
 
+/** Minimum hours for a snapshot time range (15 minutes). */
+export const SNAPSHOT_MIN_HOURS = 0.25
+
+/** Maximum hours for a snapshot time range (2 hours). */
+export const SNAPSHOT_MAX_HOURS = 2
+
 /** Resolved ActivityWatch time window with a human-readable label. */
 export type ActivityTimeRange = {
   /** Inclusive range start (local semantics). */
@@ -245,4 +251,24 @@ export function resolveActivityRange(
 export function resolveRangeHours(prompt: string, hoursFlag?: number, buckets?: Bucket[]): number {
   const range = resolveActivityRange(prompt, hoursFlag, buckets)
   return hoursBetween(range.start, range.end)
+}
+
+/**
+ * Validate that a time range falls within snapshot bounds (15min–2hr).
+ *
+ * @param range Resolved {@link ActivityTimeRange} to validate.
+ * @throws Error if the range is shorter than 15 minutes or longer than 2 hours.
+ */
+export function validateSnapshotRange(range: ActivityTimeRange): void {
+  const hours = hoursBetween(range.start, range.end)
+  if (hours < SNAPSHOT_MIN_HOURS) {
+    throw new Error(
+      `Snapshot range too short: ${hours.toFixed(2)}h (minimum ${SNAPSHOT_MIN_HOURS}h)`,
+    )
+  }
+  if (hours > SNAPSHOT_MAX_HOURS) {
+    throw new Error(
+      `Snapshot range too long: ${hours.toFixed(2)}h (maximum ${SNAPSHOT_MAX_HOURS}h)`,
+    )
+  }
 }

@@ -3,6 +3,7 @@ import { getPrompt } from '../assets/index.ts'
 const ASK_KEY = 'prompts/ask.txt'
 const REPORT_KEY = 'prompts/report.txt'
 const RECHECK_KEY = 'prompts/recheck.txt'
+const SNAPSHOT_KEY = 'prompts/snapshot.txt'
 
 function injectPromptVars(
   template: string,
@@ -36,5 +37,13 @@ export async function getRecheckPrompt(
   activityContext: string,
 ): Promise<string> {
   const template = await getPrompt(RECHECK_KEY, '')
+  return injectPromptVars(template, { modelId, activityContext })
+}
+
+export async function getSnapshotPrompt(
+  modelId: string,
+  activityContext: string,
+): Promise<string> {
+  const template = await getPrompt(SNAPSHOT_KEY, '')
   return injectPromptVars(template, { modelId, activityContext })
 }

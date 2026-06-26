@@ -52,3 +52,40 @@ export type RecheckReportInput = {
 
 /** Result of {@link generateReport} — assistant message plus model metadata. */
 export type ReportResult = ChatResponse
+
+// --- Snapshot types ---
+
+/**
+ * Input for {@link captureSnapshot}.
+ *
+ * The host must fetch ActivityWatch data for a short time window (15min–2hr)
+ * and call {@link formatActivityContext} before invoking the snapshot function.
+ */
+export type CaptureSnapshotInput = {
+  /** Natural-language prompt (e.g., "last 30 minutes", "past hour"). */
+  userPrompt: string
+  /** Pre-formatted ActivityWatch markdown from {@link formatActivityContext}. */
+  activityContext: string
+  /** LLM credentials from the host. */
+  config: JerryLlmConfig
+}
+
+/** Progress phase emitted during {@link captureSnapshot}. */
+export type SnapshotPhase = 'analyzing'
+
+/** Callback invoked with {@link SnapshotPhase} codes during snapshot generation. */
+export type SnapshotProgress = (phase: SnapshotPhase) => void
+
+/**
+ * Result from {@link captureSnapshot}.
+ *
+ * Contains a concise context summary with identified gaps.
+ */
+export type SnapshotResult = {
+  /** The snapshot markdown with context summary and gaps section. */
+  content: string
+  /** Model used for generation. */
+  model: string
+  /** Time range in hours that was analyzed. */
+  rangeHours: number
+}
