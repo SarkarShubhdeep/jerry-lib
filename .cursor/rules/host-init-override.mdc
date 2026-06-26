@@ -1,0 +1,60 @@
+---
+description: initJerryLib override path — host integration requirement
+alwaysApply: true
+---
+
+# Host Initialization & Config Override
+
+## The problem
+
+`initJerryLib()` without arguments calls `initAssets()` with no `overridePath`.
+A3T then auto-initializes on first use using only the shipped defaults.
+**User-local config files are silently ignored** unless the host explicitly passes `overridePath`.
+
+## Required pattern for every host
+
+Any host that installs `@sarkarshubhdeep/jerry-lib` from JSR **must** call
+`initJerryLib` with `overridePath` before invoking `ask`, `generateReport`, or
+`recheckReport`. Fail to do this and the user's `.config` overrides will never
+be picked up, with no error or warning.
+
+```ts
+import { initJerryLib } from '@sarkarshubhdeep/jerry-lib'
+import { join } from 'node:path'
+import { homedir } from 'node:os'
+
+// Call once at startup — before any ask/report call.
+initJerryLib({
+  assets: {
+    overridePath: join(homedir(), '.config/<app-name>/assets'),
+  },
+})
+```
+
+Replace `<app-name>` with the host's own name (e.g. `jerry-cli`, `jerry-client`).
+
+## Resolution order (once overridePath is set)
+
+1. `~/.config/<app-name>/assets/<key>` — user override (highest priority)
+2. Shipped `assets/` inside the JSR package — library defaults
+3. Inline hardcoded fallback inside `getPrompt` calls — last resort
+
+## What the override directory should contain
+
+The override directory mirrors the shipped `assets/prompts/` layout:
+
+```
+~/.config/<app-name>/assets/
+  prompts/
+    report.txt   ← replaces shipped report prompt
+    recheck.txt  ← replaces shipped recheck prompt
+    ask.txt      ← replaces shipped ask prompt
+```
+
+Files that don't exist in the override directory fall through to shipped defaults automatically.
+
+## Do not re-initialize
+
+`initJerryLib` is guarded — calling it a second time without `assets` options is
+a no-op. Always pass `assets.overridePath` on the **first** call (at app startup),
+not conditionally later.

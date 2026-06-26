@@ -1,6 +1,6 @@
 {
   "name": "@sarkarshubhdeep/jerry-lib",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "exports": "./mod.ts",
   "tasks": {
     "test": "deno test --allow-read --allow-write --allow-net --allow-env src/ mod_test.ts",
@@ -11,7 +11,8 @@
     "lint": "deno lint",
     "fmt": "deno fmt",
     "fmt:check": "deno fmt --check",
-    "smoke": "deno run --allow-read examples/external-smoke/local-smoke.ts"
+    "smoke": "deno run --allow-read examples/external-smoke/local-smoke.ts",
+    "prerelease": "printf '\\n📦 Pre-release workflow:\\n  1. Bump version in deno.json to X.Y.Z-alpha.N\\n  2. Run: deno task test\\n  3. Run: npx jsr publish\\n  4. Install in hosts: deno add @sarkarshubhdeep/jerry-lib@X.Y.Z-alpha.N\\n\\nSee PUBLISH.md for details.\\n\\n'"
   },
   "publish": {
     "exclude": ["examples/", "docs/", "**/*_test.ts", "**/*_bench.ts", "mod_test.ts", ".github/"]
