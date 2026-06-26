@@ -41,6 +41,7 @@ export { initJerryLib, type JerryLibInitOptions } from './src/init.ts'
 // --- LLM ---
 export { ask } from './src/llm/ask.ts'
 export { generateReport, recheckReport } from './src/llm/report.ts'
+export { captureSnapshot } from './src/llm/snapshot.ts'
 
 // --- ActivityWatch ---
 export {
@@ -65,6 +66,9 @@ export {
   mentionsYesterday,
   resolveActivityRange,
   resolveRangeHours,
+  SNAPSHOT_MAX_HOURS,
+  SNAPSHOT_MIN_HOURS,
+  validateSnapshotRange,
 } from './src/aw/intent.ts'
 
 // --- Assets (advanced; prefer initJerryLib for prompt setup) ---
@@ -89,6 +93,7 @@ export {
 
 // --- Types ---
 export type {
+  CaptureSnapshotInput,
   GenerateReportInput,
   JerryLlmConfig,
   LlmProvider,
@@ -96,6 +101,9 @@ export type {
   ReportPhase,
   ReportProgress,
   ReportResult,
+  SnapshotPhase,
+  SnapshotProgress,
+  SnapshotResult,
 } from './src/types.ts'
 
 export type { ChatMessage, ChatResponse, ChatRole, LlmApiPath } from './src/llm/types.ts'

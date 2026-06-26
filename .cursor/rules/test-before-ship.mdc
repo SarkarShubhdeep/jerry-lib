@@ -1,0 +1,62 @@
+---
+description: Test bench workflow reminder - test from hosts before shipping to main
+globs: 
+alwaysApply: true
+---
+
+# Test Before Ship
+
+## Branch workflow
+
+```
+feature/* → develop → main
+```
+
+- `develop` is the test bench branch for integration testing
+- `main` is for stable releases only — auto-publishes to JSR
+- Never push directly to `main` — always merge from `develop`
+
+## Before merging to develop
+
+1. Run `deno task test` — all unit tests pass
+2. Run `deno task check` — typecheck passes
+3. Open PR to `develop`, not `main`
+
+## Before merging develop to main
+
+1. Test from at least one host (jerry-cli or jerry-client)
+   - Use local path override, OR
+   - Publish a pre-release (`X.Y.Z-alpha.N`) and install in hosts
+2. Verify integration works as expected
+3. Bump `deno.json` version to stable (no `-alpha.N` suffix)
+4. Update `CHANGELOG.md`
+5. Merge `develop` → `main`
+
+## Local path override (quick testing)
+
+In the host's `deno.json`:
+
+```json
+{
+  "imports": {
+    "@sarkarshubhdeep/jerry-lib": "../jerry-lib/mod.ts"
+  }
+}
+```
+
+Remove before committing the host.
+
+## Pre-release publish (broader testing)
+
+```bash
+# In jerry-lib on develop branch
+deno task prerelease  # Shows workflow reminder
+# Bump version to X.Y.Z-alpha.N in deno.json
+deno task test
+npx jsr publish
+```
+
+## Reference
+
+- [docs/local-development.md](../docs/local-development.md) — full workflow
+- [PUBLISH.md](../PUBLISH.md) — publishing details
