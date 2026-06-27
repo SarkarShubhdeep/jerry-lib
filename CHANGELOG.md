@@ -2,6 +2,20 @@
 
 All notable changes to `@sarkarshubhdeep/jerry-lib` are documented here. Versioning follows [semver](https://semver.org/) on the public `mod.ts` API.
 
+## 0.3.0 — 2026-06-26
+
+### Added
+
+- **Snapshot capture**: `captureSnapshot()` function for quick context analysis of short time windows (15min–2hr)
+- Snapshot prompt (`assets/prompts/snapshot.txt`) with gap detection for meetings, PRs, communication gaps
+- `validateSnapshotRange()` helper to enforce snapshot time bounds
+- `SNAPSHOT_MIN_HOURS` (0.25) and `SNAPSHOT_MAX_HOURS` (2) constants
+- New types: `CaptureSnapshotInput`, `SnapshotPhase`, `SnapshotProgress`, `SnapshotResult`
+
+### Notes
+
+Minor bump (v0.3.0) — new backward-compatible exports. Existing hosts are unaffected.
+
 ## 0.2.0 — 2026-06-25
 
 ### Added
