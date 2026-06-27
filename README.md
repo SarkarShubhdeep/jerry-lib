@@ -6,6 +6,7 @@ No CLI, no stdout, no Cliffy. **jerry-cli** and **jerry-client (Electron)** are 
 
 **JSR:** [jsr.io/@sarkarshubhdeep/jerry-lib](https://jsr.io/@sarkarshubhdeep/jerry-lib)  
 **Guides:** [docs/](https://github.com/SarkarShubhdeep/jerry-lib/tree/main/docs) · [API reference](https://jsr.io/@sarkarshubhdeep/jerry-lib/doc)
+**jerry-client:** [Link](https://github.com/SarkarShubhdeep/jerry-client)
 
 ## Install
 
